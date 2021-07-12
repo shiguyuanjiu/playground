@@ -1,0 +1,16 @@
+embedding=input_tensor[slot].embedding
+            
+segment_id=intput_tensor[slot].segment
+sample_len=embedding.shape[0].value
+            
+multi_slot_count=tf.segment_sum(data=tf.ones(sample_len),segment_ids=segment_id)
+tmp = tf.map_fn(get_split_ids,multi_slot_count)
+embedding_list=tf.split(embedding,self._net_config["multi_slot_split"],0)
+for i in embedding_list:
+    multi_slot_count = i.shape[0].value
+    if i.shape[0]>=9:
+        new_embedding_list.append(tf.slice(i,[0,0],[9:15]))
+    else:
+        new_embedding_list.append(tf.pad(i,[[0,9-multi_slot_count],[0,0]]))
+    self._net_config["multi_slot_split"] = []
+    tf.concat(new_embedding_list,0)
